@@ -119,7 +119,6 @@ window.createReactComponents = createReactComponents;
 
 $(document).ready(async () => {
   await refreshConfig(); // Make sure we have config up front
-
   createReactComponents('.main-page');
   LoadDataCatalogs();
   const onePageViewModel = new OnePageViewModel();

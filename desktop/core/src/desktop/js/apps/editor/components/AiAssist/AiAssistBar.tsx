@@ -56,13 +56,12 @@ const breakLines = (input: string): string => {
 };
 
 export interface AiAssistBarProps {
-  activeExecutable?: SqlExecutable;
+  executor?: any;
+  database?: string;
+  parsedStatement?: ParsedSqlStatement;
 }
-const AiAssistBar = ({ activeExecutable }: AiAssistBarProps) => {
-  const currentExecutable =
-    activeExecutable instanceof Function ? activeExecutable() : activeExecutable;
 
-  const parsedStatement = currentExecutable?.parsedStatement;
+const AiAssistBar = ({ executor, database, parsedStatement }: AiAssistBarProps) => {
   const selectedStatement: string = parsedStatement?.statement || '';
   const lastSelectedStatement = useRef(selectedStatement);
   const lastDialect = useRef('');
@@ -86,7 +85,6 @@ const AiAssistBar = ({ activeExecutable }: AiAssistBarProps) => {
   const inputExpanded = isEditMode || isGenerateMode;
 
   const loadParser = async () => {
-    const executor = activeExecutable?.executor;
     const connector = executor?.connector();
     const dialect = connector?.dialect;
 
@@ -107,8 +105,7 @@ const AiAssistBar = ({ activeExecutable }: AiAssistBarProps) => {
 
   const loadExplanation = async (statement: string) => {
     setIsLoading(true);
-    const executor = activeExecutable?.executor;
-    const databaseName = activeExecutable?.database || '';
+    const databaseName = database || '';
     const dialect = lastDialect.current;
     const explanation = await generateExplanation({
       statement,
@@ -123,16 +120,13 @@ const AiAssistBar = ({ activeExecutable }: AiAssistBarProps) => {
     setIsLoading(false);
   };
 
-  const generateSqlQuery = async (nql: string, activeExecutable: SqlExecutable) => {
+  const generateSqlQuery = async (nql: string) => {
     setIsLoading(true);
-    const executor = activeExecutable?.executor;
-    const databaseName = activeExecutable?.database || '';
-    const dialect = lastDialect.current;
     const { sql, assumptions } = await generateSQLfromNQL({
       nql,
-      databaseName,
+      databaseName: database,
       executor,
-      dialect,
+      dialect: lastDialect.current,
       onStatusChange: handleStatusUpdate
     });
     setSuggestion(sql);
@@ -142,21 +136,14 @@ const AiAssistBar = ({ activeExecutable }: AiAssistBarProps) => {
     setIsLoading(false);
   };
 
-  const editSqlQuery = async (
-    nql: string,
-    sqlToModify: string,
-    activeExecutable: SqlExecutable
-  ) => {
+  const editSqlQuery = async (nql: string, sqlToModify: string) => {
     setIsLoading(true);
-    const executor = activeExecutable?.executor;
-    const databaseName = activeExecutable?.database || '';
-    const dialect = lastDialect.current;
     const { sql, assumptions } = await generateEditedSQLfromNQL({
       nql,
       sql: sqlToModify,
-      databaseName,
+      databaseName: database,
       executor,
-      dialect,
+      dialect: lastDialect.current,
       onStatusChange: handleStatusUpdate
     });
     setSuggestion(sql);
@@ -168,8 +155,7 @@ const AiAssistBar = ({ activeExecutable }: AiAssistBarProps) => {
 
   const loadOptimization = async (statement: string) => {
     setIsLoading(true);
-    const executor = activeExecutable?.executor;
-    const databaseName = activeExecutable?.database || '';
+    const databaseName = database || '';
     const dialect = lastDialect.current;
     const { sql, explanation, error } = await generateOptimizedSql({
       statement,
@@ -227,9 +213,9 @@ const AiAssistBar = ({ activeExecutable }: AiAssistBarProps) => {
   const handleToobarInputSubmit = (userInput: string) => {
     const sqlStatmentToModify = parsedStatement.statement;
     if (isGenerateMode) {
-      generateSqlQuery(userInput, currentExecutable);
+      generateSqlQuery(userInput);
     } else if (isEditMode) {
-      editSqlQuery(userInput, sqlStatmentToModify, currentExecutable);
+      editSqlQuery(userInput, sqlStatmentToModify);
     }
   };
 

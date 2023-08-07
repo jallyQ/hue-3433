@@ -885,8 +885,17 @@ There is no bridge to KO for components using this integration. Example using in
     <!-- /ko -->
     <!-- ko ifnot: $parent.isPresentationModeEnabled() && $parent.isPresentationMode() -->
       <div class="editor-top">
-        <div class="editor-top-actions">          
-          <AiAssistBar class="cuix antd" data-bind="reactWrapper: 'AiAssistBar', props: { activeExecutable: activeExecutable }"></AiAssistBar>
+        <div class="editor-top-actions">         
+          <AiAssistBar 
+            class="cuix antd" 
+            data-bind="reactWrapper: 'AiAssistBar', props: { 
+              executor: activeExecutable() ? activeExecutable().executor : undefined, 
+              database: activeExecutable() ? activeExecutable().database : undefined, 
+              parsedStatement: activeExecutable() ? activeExecutable().parsedStatement : undefined
+            }"
+          />
+
+
           <!-- ko template: { name: 'editor-query-redacted' } --><!-- /ko -->
           <!-- ko template: { name: 'editor-longer-operation' } --><!-- /ko -->
           <div class="editor-top-right-actions">
